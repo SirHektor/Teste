@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Velha</title>
+    <style>
+
+        @font-face {
+            font-family: pixel;
+            src: url(Minecraft.ttf);
+        }
+        @font-face {
+            font-family: pixel2;
+            src: url(BirchLeaf.ttf);
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 120px;
+        }
+
+        canvas {
+            border: 2px solid #333;
+            cursor: pointer;
+        }
+
+        p {
+            font-family: pixel, sans-serif;
+        }
+
+        h1 {
+            font-family: pixel2, sans-serif;
+        }
+        .botao{
+            margin-left: 5px;
+        }
+        button {
+            padding-top: 5px;
+            padding-left: 5px;
+            padding-bottom: 5px;
+            padding-right: 5px;
+            border: 0;
+            background: 0%;
+            box-shadow: #333;
+            cursor: pointer;
+            font-family: pixel, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>Jogo da Velha</h1>
+    <canvas id="board" width="300" height="300"></canvas>
+    <p id="status"></p>
+    <div id="score">
+        <p>Jogador X: <span id="scoreX">0</span></p>
+        <p>Jogador O: <span id="scoreO">0</span></p>
+    </div>
+    <div class="botao">
+    <button onclick="restartGame()" id="reiniciar">Recomeçar</button>
+    <button onclick="ScoreReset()" id="reiniciar">Recomeçar placar</button>
+    </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('board');
+        const ctx = canvas.getContext('2d');
+        const status = document.getElementById('status');
+        const restartButton = document.getElementById('restartButton');
+        const scoreXElement = document.getElementById('scoreX');
+        const scoreOElement = document.getElementById('scoreO');
+        const cellSize = 100;
+        const boardSize = 3;
+        const boardState = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let gameActive = true;
+        let scoreX = 0;
+        let scoreO = 0;
+
+        canvas.addEventListener('click', handleCanvasClick);
+
+        function handleCanvasClick(event) {
+            if (gameActive) {
+                const x = Math.floor(event.offsetX / cellSize);
+                const y = Math.floor(event.offsetY / cellSize);
+                const index = y * boardSize + x;
+
+                if (boardState[index] === '') {
+                    boardState[index] = currentPlayer;
+                    drawBoard();
+                    if (checkWinner()) {
+                        status.textContent = `${currentPlayer} venceu!`;
+                        gameActive = false;
+                        updateScore(currentPlayer);
+                    } else if (!boardState.includes('')) {
+                        status.textContent = 'Empate!';
+                        gameActive = false;
+                    } else {
+                        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                        status.textContent = `É a vez de ${currentPlayer}`;
+                    }
+                }
+            }
+        }
+
+        function checkWinner() {
+            const winningCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+
+            for (const combo of winningCombinations) {
+                const [a, b, c] = combo;
+                if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < boardSize; i++) {
+                for (let j = 0; j < boardSize; j++) {
+                    const index = i * boardSize + j;
+                    const cellValue = boardState[index];
+                    const x = j * cellSize + cellSize / 2;
+                    const y = i * cellSize + cellSize / 2;
+
+                    ctx.font = '36px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    ctx.fillText(cellValue, x, y);
+                }
+            }
+
+            drawGrid();
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+
+            for (let i = 1; i < boardSize; i++) {
+                const x = i * cellSize;
+                const y = i * cellSize;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        function restartGame() {
+            // Limpa o tabuleiro e redefine as variáveis para reiniciar o jogo.
+            boardState.fill('');
+            currentPlayer = 'X';
+            gameActive = true;
+            status.textContent = '';
+            drawBoard();
+        }
+
+        function updateScore(player) {
+            if (player === 'X') {
+                scoreX++;
+                scoreXElement.textContent = scoreX;
+            } else if (player === 'O') {
+                scoreO++;
+                scoreOElement.textContent = scoreO;
+            }
+        }
+
+        function ScoreReset() {
+            boardState.fill('');
+            currentPlayer = 'X';
+            gameActive = true;
+            status.textContent = '';
+            scoreX = 0;
+            scoreO = 0;
+            scoreXElement.textContent = scoreX;
+            scoreOElement.textContent = scoreO;
+            drawBoard();
+        }
+
+        drawBoard();
+    </script>
+</body>
+</html>
